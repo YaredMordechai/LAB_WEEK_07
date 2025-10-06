@@ -80,26 +80,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .show()
     }
 
-    private fun updateMapLocation(location: LatLng) {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-            location, 15f))
-    }
-
-    private fun addMarkerAtLocation(location: LatLng, title: String) {
-        mMap.addMarker(MarkerOptions().title(title)
-            .position(location))
-    }
+    // Fungsi untuk mengambil lokasi terakhir pengguna
     private fun getLastLocation() {
         if (hasLocationPermission()) {
             try {
                 fusedLocationProviderClient.lastLocation
                     .addOnSuccessListener { location: Location? ->
                         location?.let {
-                            val userLocation = LatLng(location.latitude,
-                                location.longitude)
+                            val userLocation = LatLng(it.latitude, it.longitude)
                             updateMapLocation(userLocation)
                             addMarkerAtLocation(userLocation, "You")
+                        } ?: run {
+                            Log.d("MapsActivity", "Lokasi terakhir tidak tersedia.")
                         }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("MapsActivity", "Gagal mendapatkan lokasi: ${e.message}")
                     }
             } catch (e: SecurityException) {
                 Log.e("MapsActivity", "SecurityException: ${e.message}")
@@ -107,5 +103,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         } else {
             requestPermissionLauncher.launch(ACCESS_FINE_LOCATION)
         }
+    }
+
+    // Pindahkan kamera ke lokasi pengguna
+    private fun updateMapLocation(location: LatLng) {
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
+    }
+
+    // Tambahkan marker pada posisi pengguna
+    private fun addMarkerAtLocation(location: LatLng, title: String) {
+        mMap.addMarker(MarkerOptions().position(location).title(title))
     }
 }
